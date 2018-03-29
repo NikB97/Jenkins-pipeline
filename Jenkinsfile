@@ -1,16 +1,31 @@
+def GIT_URL = "https://github.com/NikB97/Jenkins-pipeline.git"
+def BRANCH = "nbuzin"
+def GRADLE = "gradle-4.6"
+def JDK = "JDK 8u161"
+
 node{ 
     
- stage("Preparation(Checking out)") {
-    echo "Preparation-repo cloning"
-    git branch: "nbuzin", url: "https://github.com/NikB97/Jenkins-pipeline.git" }
+ stage("Preparation") {
+    echo "Preparation - repo cloning"
+    git branch: "${BRANCH}", url: "${GIT_URL}" }
 
    stage ("Building code") {
-        echo "Start Building"
-        tool name: "gradle-4.6", type: "gradle"
-        tool name: "JDK 8u161", type: "jdk"
-        withEnv(["JAVA_HOME=${ tool "JDK 8u161" }", "PATH+GRADLE=${tool 'gradle-4.6'}/bin"]){
+        echo "Starting Build"
+        tool name: "${GRADLE}", type: "gradle"
+        tool name: "${JDK}", type: "jdk"
+        withEnv(["JAVA_HOME=${ tool "${JDK}" }", "PATH+GRADLE=${tool "${GRADLE}"}/bin"]){
         sh "gradle build"
         }
-        echo "End of Building"
+        echo "Finishing Build"
     }  
+    
+    stage("Testing") {
+        echo "Starting Tests"
+        parallel(
+                "Cucumber Tests": {sh "/opt/${GRADLE}/bin/gradle cucumber"},
+                "Unit Tests": {sh "/opt/${GRADLE}/bin/gradle test"},
+                "Jacoco Tests": {sh "/opt/${GRADLE}/bin/gradle jacocoTestReport"},
+                )
+        echo "Finishing Tests"
+    }
 }
