@@ -6,6 +6,7 @@ def JDK = "JDK 8u161"
 node{ 
     
  stage("Preparation") {
+    cleanWs()
     echo "Preparation - repo cloning"
     git branch: "${STUDENT}", url: "${GIT_URL}" }
 
@@ -35,4 +36,11 @@ node{
                projectName: "MNTLAB-${STUDENT}-child1-build-job",
                filter: "*.tar.gz"])
     }
+    
+    stage("Packaging and Publishing results") {
+        sh "cp build/libs/pipeline-test.jar ."
+        sh "tar -xvf *.tar.gz"
+        sh "tar -czf pipeline-${STUDENT}-${BUILD_NUMBER}.tar.gz pipeline-test.jar jobs.groovy Jenkinsfile"
+    }    
+    
 }
