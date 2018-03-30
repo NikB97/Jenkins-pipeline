@@ -1,5 +1,5 @@
 def GIT_URL = "https://github.com/NikB97/Jenkins-pipeline.git"
-def BRANCH = "nbuzin"
+def STUDENT = "nbuzin"
 def GRADLE = "gradle-4.6"
 def JDK = "JDK 8u161"
 
@@ -7,7 +7,7 @@ node{
     
  stage("Preparation") {
     echo "Preparation - repo cloning"
-    git branch: "${BRANCH}", url: "${GIT_URL}" }
+    git branch: "${STUDENT}", url: "${GIT_URL}" }
 
    stage ("Building code") {
         echo "Starting Build"
@@ -27,5 +27,12 @@ node{
                 "Jacoco Tests": {sh "/opt/${GRADLE}/bin/gradle jacocoTestReport"},
                 )
         echo "Finishing Tests"
+    }
+    
+    stage("Triggering job and fetching artefact after finishing") {
+        build job: "MNTLAB-${STUDENT}-child1-build-job", parameters: [string(name: "BRANCH_NAME", value: "${STUDENT}")]
+        step ([$class: "CopyArtifact",
+               projectName: "MNTLAB-${STUDENT}-child1-build-job",
+               filter: "*.tar.gz"])
     }
 }
